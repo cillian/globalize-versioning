@@ -23,21 +23,7 @@ class VersioningTest < MiniTest::Spec
     assert_equal %w[en en], post.translation.versions.map(&:locale)
   end
 
-  it "only reverts changes to the current locale when reverting to an earlier version" do
-    post = Post.create!(:title => 'title v1')
-    post.update_attributes!(:title => 'title v2')
-    post.update_attributes!(:title => 'Titel v1', :locale => :de)
-    post.update_attributes!(:title => 'title v3')
-
-    # Roll back 2 versions in default locale
-    post.rollback
-    post.rollback
-
-    assert_equal 'title v1', post.title(:en)
-    assert_equal 'Titel v1', post.title(:de)
-  end
-
-  it "only reverts in the current locale" do
+  it "only fetches versions from the current locale" do
     post = Post.create!(:title => 'title v1')
 
     with_locale(:en) do
@@ -57,20 +43,18 @@ class VersioningTest < MiniTest::Spec
     end
 
     with_locale(:en) do
-      post.rollback
-      assert_equal 'updated title in English', post.title
+      post_en_v2 = post.translation.versions[2].reify
+      post_en_v1 = post.translation.versions[1].reify
 
-      post.rollback
-      assert_equal 'title v1', post.title
+      assert_equal 'updated title in English', post_en_v2.title
+
+      assert_equal 'title v1', post_en_v1.title
     end
 
     with_locale(:de) do
-      post.rollback
-      assert_equal 'updated title in German', post.title
-    end
+      post_de_v1 = post.translation.versions[1].reify
 
-    with_locale(:en) do
-      assert_equal 'title v1', post.title
+      assert_equal 'updated title in German', post_de_v1.title
     end
   end
 end

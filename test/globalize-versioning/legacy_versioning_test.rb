@@ -8,8 +8,7 @@ class LegacyVersioningTest < MiniTest::Spec
 
     post.update_attributes :title => 'title v2'
 
-    post.rollback
-    assert_equal 'title v1', post.title
+    assert_equal 'title v1', post.translation.paper_trail.previous_version.title
   end
 
 end
