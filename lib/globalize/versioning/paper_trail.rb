@@ -29,11 +29,19 @@ version_class = PaperTrail::VERSION.is_a?(String) ? Version : PaperTrail::Versio
 version_class.class_eval do
 
   before_save do |version|
-    version.locale = Globalize.locale.to_s
+    version.locale = item_locale_or_default_from(version)
   end
 
   def self.for_this_locale
     where :locale => Globalize.locale.to_s
+  end
+
+  def item_locale_or_default_from(version)
+    if version.item.is_a?(Globalize::ActiveRecord::Translation) && version.item.locale.present?
+      version.item.locale
+    else
+      Globalize.locale.to_s
+    end
   end
 
   def sibling_versions_with_locales
